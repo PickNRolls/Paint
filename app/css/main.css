@@ -7,19 +7,19 @@ body {
   display: block;
   width: 1280px;
   height: 720px;
-  margin: 20px auto;
+  margin: 75px auto 20px;
   position: relative; }
 
 .tools-panel {
   position: absolute;
-  top: 0;
+  top: -55px;
   left: 0; }
   .tools-panel__button {
     margin-right: 2px; }
 
 .palette {
   position: absolute;
-  top: 0;
+  top: -55px;
   right: 0; }
 
 .button {
