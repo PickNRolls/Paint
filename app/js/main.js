@@ -30,7 +30,17 @@ class ToolsPanel extends Panel {
     this.addStrategy({
       tool: 'Pen',
       strategy: function() {
-        
+        console.log('I\'m pen!');
+      }
+    }).addStrategy({
+      tool: 'Eraser',
+      strategy: function() {
+        console.log('I\'m Eraser!');
+      }
+    }).addStrategy({
+      tool: 'Fill',
+      strategy: function() {
+        console.log('I\'m Fill!');
       }
     });
 
@@ -39,7 +49,7 @@ class ToolsPanel extends Panel {
 
   _initListeners() {
     for (var i = 0, len = this.buttons.length; i < len; i++) {
-      this.buttons[i].addEvent('click', this.changeTool, this);
+      this.buttons[i].addEvent('click', this.changeStrategy.bind(this));
     }
 
     this.world.canvas.addEventListener('mousedown', this.useCurrentTool.bind(this));
@@ -47,13 +57,14 @@ class ToolsPanel extends Panel {
 
   addStrategy(strategy) {
     this.strategies.push(strategy);
+    return this;
   }
 
   changeStrategy(clickEvent) {
     this.currentTool = clickEvent.target.textContent;
     for (var i = 0, len = this.strategies.length; i < len; i++) {
       if (this.strategies[i].tool === this.currentTool)
-        this.strategy = this.strategies[i];
+        this.strategy = this.strategies[i].strategy;
     }
   }
 
@@ -99,11 +110,7 @@ class Button {
     return this;
   }
 
-  addEvent(event, callback, bind) {
-    if (bind) {
-      this.elem.addEventListener(event, callback.bind(bind));
-      return;
-    }
+  addEvent(event, callback) {
     this.elem.addEventListener(event, callback);
   }
 }
