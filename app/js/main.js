@@ -30,17 +30,42 @@ class ToolsPanel extends Panel {
     this.addStrategy({
       tool: 'Pen',
       strategy: function() {
-        console.log('I\'m pen!');
+        var ctx = this.world.ctx;
+        var canvas = this.world.canvas;
+        var mouseDowned = false;
+        ctx.strokeStyle = '#fff';
+
+        canvas.onmousedown = function() {
+          mouseDowned = true;
+          ctx.beginPath();
+        };
+
+        canvas.onmousemove = function(e) {
+          if (mouseDowned) {
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+          }
+        };
+
+        canvas.onmouseup = function() {
+          mouseDowned = false;
+        };
       }
     }).addStrategy({
       tool: 'Eraser',
       strategy: function() {
-        console.log('I\'m Eraser!');
+        this.findStrategy('Pen').strategy.call(this);
       }
     }).addStrategy({
       tool: 'Fill',
       strategy: function() {
-        console.log('I\'m Fill!');
+        var worldContext = this.world;
+        var ctx = worldContext.ctx;
+        this.world.canvas.onclick = function() {
+          ctx.beginPath();
+          ctx.rect(0, 0, worldContext.width, worldContext.height);
+          ctx.fill();
+        };
       }
     });
 
@@ -61,10 +86,17 @@ class ToolsPanel extends Panel {
   }
 
   changeStrategy(clickEvent) {
+    var c = this.world.canvas;
+    c.onmousedown = c.mouseup = c.mousemove = c.onclick = null;
+
     this.currentTool = clickEvent.target.textContent;
+    this.strategy = this.findStrategy(this.currentTool).strategy;
+    this.strategy.call(this);
+  }
+
+  findStrategy(name) {
     for (var i = 0, len = this.strategies.length; i < len; i++) {
-      if (this.strategies[i].tool === this.currentTool)
-        this.strategy = this.strategies[i].strategy;
+      if (this.strategies[i].tool === name) return this.strategies[i];
     }
   }
 
