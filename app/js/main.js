@@ -10,6 +10,7 @@ class Panel {
   }
 
   addButton(buttonInstance) {
+    buttonInstance.panel = this;
     buttonInstance.append(this.elem);
     this.buttons.push(buttonInstance);
   }
@@ -33,7 +34,7 @@ class ToolsPanel extends Panel {
         var ctx = this.world.ctx;
         var canvas = this.world.canvas;
         var mouseDowned = false;
-        ctx.strokeStyle = '#fff';
+        ctx.strokeStyle = this.world.palette.currentColor;
 
         canvas.onmousedown = function() {
           mouseDowned = true;
@@ -54,16 +55,36 @@ class ToolsPanel extends Panel {
     }).addStrategy({
       tool: 'Eraser',
       strategy: function() {
-        this.findStrategy('Pen').strategy.call(this);
+        var ctx = this.world.ctx;
+        var canvas = this.world.canvas;
+        var mouseDowned = false;
+        ctx.strokeStyle = '#fff';
+
+        canvas.onmousedown = function() {
+          mouseDowned = true;
+          ctx.beginPath();
+        };
+
+        canvas.onmousemove = function(e) {
+          if (mouseDowned) {
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+          }
+        };
+
+        canvas.onmouseup = function() {
+          mouseDowned = false;
+        };
       }
     }).addStrategy({
       tool: 'Fill',
       strategy: function() {
-        var worldContext = this.world;
-        var ctx = worldContext.ctx;
+        var world = this.world;
+        var ctx = world.ctx;
+        ctx.fillStyle = world.palette.currentColor;
         this.world.canvas.onclick = function() {
           ctx.beginPath();
-          ctx.rect(0, 0, worldContext.width, worldContext.height);
+          ctx.rect(0, 0, world.width, world.height);
           ctx.fill();
         };
       }
@@ -74,7 +95,7 @@ class ToolsPanel extends Panel {
 
   _initListeners() {
     for (var i = 0, len = this.buttons.length; i < len; i++) {
-      this.buttons[i].addEvent('click', this.changeStrategy.bind(this));
+      this.buttons[i].elem.addEventListener('click', this.changeStrategy.bind(this));
     }
 
     this.world.canvas.addEventListener('mousedown', this.useCurrentTool.bind(this));
@@ -117,6 +138,21 @@ class Palette extends Panel {
     this.addButton( new Button('', ['palette__button']).fill('#5bdb25') );
 
     this.currentColor = null;
+    this._initListeners();
+  }
+
+  _initListeners() {
+    var palette = this;
+    for (var i = 0, len = this.buttons.length; i < len; i++) {
+      var button = this.buttons[i];
+      button.elem.addEventListener('click', function() {
+        palette.changeColor(this.color);
+      }.bind(button));
+    }
+  }
+
+  changeColor(color) {
+    this.currentColor = color;
   }
 }
 
@@ -138,12 +174,12 @@ class Button {
   }
 
   fill(color) {
-    this.elem.style.backgroundColor = color;
+    this.elem.style.backgroundColor = this.color = color;
     return this;
   }
 
-  addEvent(event, callback) {
-    this.elem.addEventListener(event, callback);
+  addEvent(typeOfEvent, callback) {
+    this.elem.addEventListener(typeOfEvent, callback);
   }
 }
 
