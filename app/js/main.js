@@ -42,6 +42,100 @@ class Widget {
   }
 }
 
+class ScrollSlider extends Widget {
+  constructor(config) {
+    super(config);
+    this._mousemove = this._mousemove.bind(this);
+    this._mouseup = this._mouseup.bind(this);
+    this._classes.push('scroll-slider');
+    this._scroll = null;
+    this._sliderWidth = null;
+    this._sliderCoord = null;
+    this._scrollWidth = null;
+    this._scrollCoord = null;
+    this._scrollWidth = null;
+    this._dragged = false;
+  }
+
+  start() {
+    this._init();
+    return this._handleListeners();
+  }
+
+  _init() {
+    super._init();
+    if (!this._elem.querySelector('[data-scroll-slider]')) {
+      this._scroll = document.createElement('div');
+      this._scroll.setAttribute('data-scroll-slider', 'on');
+      this._scroll.classList.add('scroll');
+      this._elem.insertBefore(this._scroll, this._elem.firstChild);
+    }
+    this._sliderWidth = this._elem.offsetWidth;
+    this._sliderCoord = new ElementCoordinate(this._elem);
+    return this._scrollWidth = this._scroll.offsetWidth;
+  }
+
+  _handleListeners() {
+    this._elem.addEventListener('mousedown', (e) => {
+      this._mousedown(e);
+      document.addEventListener('mousemove', this._mousemove);
+      this._elem.ondrag = function() {
+        return false;
+      };
+      return document.addEventListener('mouseup', this._mouseup);
+    });
+    return this._elem.addEventListener('click', (e) => {
+      var target;
+      target = e.target;
+      if (!target.classList.contains('scroll-slider') || target.getAttribute('data-scroll-slider')) {
+        return;
+      }
+      return this._scroll.style.left = e.pageX - this._sliderCoord.left - this._scrollWidth / 2 + 'px';
+    });
+  }
+
+  _mousedown(e) {
+    var target;
+    target = e.target;
+    if (!target.classList.contains('scroll')) {
+      return;
+    }
+    this._scrollCoord = new ElementCoordinate(target);
+    document.body.style.cursor = 'pointer';
+    return this._dragged = true;
+  }
+
+  _mousemove(e) {
+    boundMethodCheck(this, ScrollSlider);
+    if (!this._dragged) {
+      return;
+    }
+    this._scroll.style.left = e.pageX - this._sliderCoord.left + 'px';
+    this._scrollCoord.refresh();
+    return this._checkEdges();
+  }
+
+  _mouseup() {
+    boundMethodCheck(this, ScrollSlider);
+    document.removeEventListener('mousemove', this._mousemove);
+    document.removeEventListener('mouseup', this._mouseup);
+    this._dragged = false;
+    return document.body.style.cursor = '';
+  }
+
+  _checkEdges() {
+    var leftEdge, rightEdge;
+    rightEdge = this._sliderWidth - this._scrollWidth;
+    leftEdge = this._scrollCoord.left - this._sliderCoord.left;
+    if (leftEdge < 0) {
+      this._scroll.style.left = 0;
+    }
+    if (leftEdge > rightEdge) {
+      return this._scroll.style.left = rightEdge + 'px';
+    }
+  }
+}
+
 class Panel {
   constructor(world) {
     this.world = world;
