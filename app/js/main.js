@@ -1,3 +1,47 @@
+class ElementCoordinate {
+  constructor(elem) {
+    this.elem = elem;
+    this.refresh();
+  }
+
+  refresh() {
+    this.top = this.elem.getBoundingClientRect().top + pageYOffset;
+    this.left = this.elem.getBoundingClientRect().left + pageXOffset;
+  }
+}
+
+class Widget {
+  constructor(config) {
+    this.elem = config.element;
+    if (typeof config.classes === 'string') {
+      var arr = [];
+      arr.push(config.classes);
+      this.classes = arr;
+    } else {
+      this.classes = config.classes;
+    }
+  } 
+
+  start() {
+    return new Error('Method start must be overriden!')
+  }
+
+  getElement() {
+    return this.elem;
+  }
+
+  getClassList(likeString) {
+    if(likeString) return this.classes.join(' ');
+    return this.classes;
+  }
+
+  init() {
+    for (var i = 0, len = this.classes; i < len; i++) {
+      this.elem.classList.add(this.classes[i]);
+    }
+  }
+}
+
 class Panel {
   constructor(world) {
     this.world = world;
@@ -178,9 +222,9 @@ class Button {
     return this;
   }
 
-  addEvent(typeOfEvent, callback) {
-    this.elem.addEventListener(typeOfEvent, callback);
-  }
+  // addEvent(typeOfEvent, callback) {
+  //   this.elem.addEventListener(typeOfEvent, callback);
+  // }
 }
 
 class World {
